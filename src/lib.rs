@@ -202,6 +202,7 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
 
   // typography
   cx.export_function("CanvasRenderingContext2D_fillText", ctx::fillText)?;
+  cx.export_function("CanvasRenderingContext2D_fillAndStrokeText", ctx::fillAndStrokeText)?;
   cx.export_function("CanvasRenderingContext2D_strokeText", ctx::strokeText)?;
   cx.export_function("CanvasRenderingContext2D_measureText", ctx::measureText)?;
   cx.export_function("CanvasRenderingContext2D_outlineText", ctx::outlineText)?;
