@@ -122,6 +122,55 @@ declare var DOMMatrix: {
 
 export type ExportFormat = "png" | "jpg" | "jpeg" | "webp" | "pdf" | "svg";
 
+export enum CompressionLevel {
+  Default = -1,
+  None = 0,
+  LowButFast = 1,
+  Average = 6,
+  HighButSlow = 9,
+}
+  
+export interface PDFMetadata {
+  /** The document's title. */ 
+  title?: string,
+  /** The name of the person who created the document. */
+  author?: string,
+  /** The subject of the document. */
+  subject?: string,
+  /** Keywords associated with the document. Commas may be used to delineate keywords within the string. */
+  keywords?: string,
+  /** 
+   * If the document was converted to PDF from another format, the name of the conforming
+   * product that created the original document from which it was converted.
+   */  
+  creator?: string,
+  /** The product that is converting this document to PDF. */
+  producer?: string,
+  /** The date and time the document was created. */
+  creation?: Date,
+  /** The date and time the document was most recently modified. */
+  modified?: Date,
+  /** The natural language of the text in the PDF. */
+  lang?: string,
+  /**
+   * If `true`, include XMP metadata, a document UUID, and `s_rgb` output intent
+   * information.  This adds length to the document and makes it
+   * non-reproducible, but are necessary features for PDF/A-2b conformance
+   */
+  pdf_a?: boolean,
+  /**
+   * Encoding quality controls the trade-off between size and quality. By default this is set
+   * to 101 percent, which corresponds to lossless encoding. If this value is set to a value
+   * <= 100, and the image is opaque, it will be encoded (using JPEG) with that quality setting.
+   */
+  encoding_quality?: number,
+  /**
+   * PDF streams may be compressed to save space.
+   * Use this to specify the desired compression vs time tradeoff.
+   */
+  compression_level?: CompressionLevel,
+}
+
 export interface RenderOptions {
   /** Page to export: Defaults to 1 (i.e., first page) */
   page?: number
@@ -142,6 +191,7 @@ export interface RenderOptions {
 export interface SaveOptions extends RenderOptions {
   /** Image format to use */
   format?: ExportFormat
+  pdfMetadata?: PDFMetadata
 }
 
 export class Canvas {

@@ -152,7 +152,7 @@ impl Page{
   }
 
   pub fn encoded_as(&self, options:ExportOptions, engine:RenderingEngine) -> Result<Data, String> {
-    let ExportOptions{ format, quality, density, outline, matte, msaa, color_type } = options;
+    let ExportOptions{ format, quality, density, outline, matte, msaa, color_type, pdfMetadata } = options;
 
     let picture = self.get_picture(matte).ok_or("Could not generate an image")?;
     if self.bounds.is_empty(){
@@ -196,7 +196,7 @@ impl Page{
         })
       }else if format == "pdf"{
         let mut pdf_bytes = Vec::new();
-        let mut document = pdf_document(&mut pdf_bytes, quality, density).begin_page(img_dims, None);
+        let mut document = pdf_document(&mut pdf_bytes, quality, density, pdfMetadata).begin_page(img_dims, None);
         let canvas = document.canvas();
         canvas.draw_picture(&picture, None, None);
         document.end_page().close();
@@ -258,11 +258,11 @@ impl PageSequence{
   }
 
   pub fn as_pdf(&self, options:ExportOptions) -> Result<Data, String>{
-    let ExportOptions{ quality, density, matte, .. } = options;
+    let ExportOptions{ quality, density, matte, pdfMetadata, .. } = options;
     let mut pdf_bytes = Vec::new();
     self.pages
       .iter()
-      .try_fold(pdf_document(&mut pdf_bytes, quality, density), |doc, page| page.append_to(doc, matte))
+      .try_fold(pdf_document(&mut pdf_bytes, quality, density, pdfMetadata), |doc, page| page.append_to(doc, matte))
       .map(|doc| doc.close())?;
     Ok(Data::new_copy(&pdf_bytes))
   }
@@ -316,12 +316,13 @@ pub fn pages_arg(cx: &mut FunctionContext, idx:usize, canvas:&BoxedCanvas) -> Ne
   Ok(PageSequence::from(pages, engine))
 }
 
-fn pdf_document(buffer:&mut impl std::io::Write, quality:f32, density:f32) -> Document{
+fn pdf_document(buffer:&mut impl std::io::Write, quality:f32, density:f32, pdfMetadata: Option<pdf::Metadata>) -> Document{
   pdf::new_document(buffer, Some(&pdf::Metadata {
     producer: "Skia Canvas <https://github.com/samizdatco/skia-canvas>".to_string(),
     encoding_quality: Some((quality*100.0) as i32),
     raster_dpi: Some(density * 72.0),
     ..Default::default()
+    ..pdfMetadata
   }))
 }
 
@@ -363,5 +364,6 @@ pub struct ExportOptions{
   pub outline: bool,
   pub matte: Option<Color>,
   pub msaa: Option<usize>,
-  pub color_type: ColorType
+  pub color_type: ColorType,
+  pub pdfMetadata: Option<pdf::Metadata>
 }
