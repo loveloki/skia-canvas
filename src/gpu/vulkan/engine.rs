@@ -1,7 +1,6 @@
 #![allow(unused_imports)]
 use std::{cell::RefCell, sync::{Arc, OnceLock}, time::{Instant, Duration}, ptr};
 use serde_json::{json, Value};
-
 use vulkano::{
     device::{
         physical::{PhysicalDevice, PhysicalDeviceType},
@@ -13,7 +12,7 @@ use vulkano::{
 
 use skia_safe::gpu::vk::{BackendContext, GetProcOf};
 use skia_safe::gpu::{direct_contexts, surfaces, Budgeted, DirectContext, SurfaceOrigin};
-use skia_safe::{ColorSpace, ISize, ImageInfo, Surface, Data};
+use skia_safe::{ColorSpace, ISize, ImageInfo, Surface};
 
 
 thread_local!( static VK_CONTEXT: RefCell<Option<VulkanContext>> = const { RefCell::new(None) }; );
@@ -51,15 +50,15 @@ impl VulkanEngine {
                     Self::spawn_idle_watcher(); // watch for inactive contexts and deallocate them
 
                     let device_props = context.physical_device.properties();
-                    let (mode, gpu_type) = match device_props.device_type {
-                        PhysicalDeviceType::IntegratedGpu => ("GPU", Some("Integrated GPU")),
-                        PhysicalDeviceType::DiscreteGpu => ("GPU", Some("Discrete GPU")),
-                        PhysicalDeviceType::VirtualGpu => ("GPU", Some("Virtual GPU")),
-                        _ => ("CPU", Some("Software Rasterizer"))
+                    let gpu_type = match device_props.device_type {
+                        PhysicalDeviceType::IntegratedGpu => Some("Integrated GPU"),
+                        PhysicalDeviceType::DiscreteGpu => Some("Discrete GPU"),
+                        PhysicalDeviceType::VirtualGpu => Some("Virtual GPU"),
+                        _ => Some("Software Rasterizer")
                     };
 
                     json!({
-                        "renderer": mode,
+                        "renderer": "GPU",
                         "api": "Vulkan",
                         "device": gpu_type.map(|t| format!("{} ({})",
                             t, device_props.device_name)
@@ -219,12 +218,17 @@ impl VulkanContext{
         }
         .ok_or("Failed to create Vulkan backend context")?;
 
-        let sample_counts = physical_device.properties().framebuffer_color_sample_counts;
-        let mut msaa:Vec<usize> = [2,4,8,16,32].into_iter()
-        .filter_map(|s| vulkano::image::SampleCount::try_from(s).ok() )
-        .filter(|s| sample_counts.contains_enum(*s) )
-        .map(|s| s as usize)
-        .collect();
+        let vk_sample_counts = physical_device.properties().framebuffer_color_sample_counts;
+        let max_sample_count = context.max_surface_sample_count_for_color_type(
+            // even if the device claims it supports >1 samples, let skia overrule it
+            ImageInfo::new_n32_premul((0,0), None).color_type()
+        );
+        let mut msaa:Vec<usize> = [1,2,4,8,16,32].into_iter()
+            .filter(|s| s <= &max_sample_count)
+            .filter_map(|s| vulkano::image::SampleCount::try_from(s as u32).ok() )
+            .filter(|s| vk_sample_counts.contains_enum(*s) )
+            .map(|s| s as usize)
+            .collect();
 
         msaa.insert(0, 0); // also include the shader-based AA option
 

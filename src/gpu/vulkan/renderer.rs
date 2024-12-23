@@ -2,8 +2,9 @@
 #![allow(unused_imports)]
 use ash::vk::Handle;
 use std::{
-    cell::RefCell, collections::HashMap, ptr, sync::Arc
+    cell::RefCell, ptr, sync::Arc
 };
+use skia_safe::gpu::{self, backend_render_targets, direct_contexts, surfaces, vk};
 use vulkano::{
     device::{
         physical::PhysicalDeviceType, Device, DeviceCreateInfo, DeviceExtensions, Queue,
@@ -20,16 +21,13 @@ use vulkano::{
     Validated, VulkanError, VulkanLibrary, VulkanObject,
 };
 
-use skia_safe::{
-    gpu::{self, backend_render_targets, direct_contexts, surfaces, vk},
-    ColorType,
-};
+use super::{VK_FORMATS, to_sk_format};
 
 #[cfg(feature = "window")]
 use winit::{
     dpi::{LogicalSize, PhysicalSize},
     event_loop::ActiveEventLoop,
-    window::{Window, WindowId},
+    window::Window,
 };
 
 thread_local!(
@@ -126,9 +124,21 @@ impl VulkanRenderer {
             let surface_capabilities = physical_device
                 .surface_capabilities(&surface, Default::default())
                 .unwrap();
-            let (image_format, _) = physical_device
+
+            // choose the first device format that is on the supported list
+            let device_formats = physical_device
                 .surface_formats(&surface, Default::default())
-                .unwrap()[0];
+                .unwrap();
+            let (image_format, _) = device_formats.clone()
+                .into_iter()
+                .find(|(fmt, _)| VK_FORMATS.contains(fmt))
+                .unwrap_or_else(||
+                    panic!(
+                        "Vulkan: no format supported by Skia was found on device.\nSupported formats: {:?}\nDevice formats: {:?}",
+                        VK_FORMATS,
+                        device_formats
+                    )
+                );
 
             Swapchain::new(
                 device.clone(),
@@ -354,13 +364,8 @@ impl VulkanBackend{
         let image_object = image_access.image().handle().as_raw();
 
         let format = image_access.format();
-        let (vk_format, color_type) = match format {
-            vulkano::format::Format::B8G8R8A8_UNORM => (
-                skia_safe::gpu::vk::Format::B8G8R8A8_UNORM,
-                ColorType::BGRA8888,
-            ),
-            _ => panic!("Vulkan: unsupported color format {:?}", format),
-        };
+        let (vk_format, color_type) = to_sk_format(&format)
+            .unwrap_or_else(|| panic!("Vulkan: unsupported color format {:?}", format));
 
         let image_info = &unsafe {
             vk::ImageInfo::new(

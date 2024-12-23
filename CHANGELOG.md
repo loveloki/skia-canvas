@@ -1,7 +1,20 @@
 # Changelog
 
-## 🥚 ⟩ [Unreleased]
+<!-- ## 🥚 ⟩ [Unreleased] -->
 
+## 📦 ⟩ [v2.0.1] ⟩ Dec 8, 2024
+
+### Misc. Improvements
+- Added support for Intel integrated GPUs that would previously throw an "instantiated but unable to render" error
+  - Note: you may need to upgrade to the latest Mesa drivers ([24.3.1 or later][mesa_ppa]), especially for in-window rendering to work correctly on Linux
+- Fixed window initialization for Vulkan GPUs that default to a framebuffer color-format Skia doesn't support
+- Vulkan drivers that fall back to the [Mesa LLVMpipe][mesa_llvmpipe] software renderer now work correctly
+- Optimized font library initialization to improve SVG parsing speed
+
+[mesa_ppa]: https://launchpad.net/~kisak/+archive/ubuntu/kisak-mesa
+[mesa_llvmpipe]: https://docs.mesa3d.org/drivers/llvmpipe.html
+
+## 📦 ⟩ [v2.0.0] ⟩ Dec 2, 2024
 
 ### New Features
 
@@ -64,7 +77,7 @@
   > It’s a fairly direct adaptation of Vulkano [sample code][vulkano_demo] for device setup with skia-specific rendering routines inspired by [@pragmatrix](https://github.com/pragmatrix)’s renderer for [emergent][pragmatrix_emergent]. All of which is to say, if you understand this better than I do I'd love some suggestions for improving the rendering setup.
 - The GPU is now initialized only when it is needed, not at startup. As a result, setting that **Canvas**'s [`.gpu`][canvas_gpu] property to `false` immediately after creation will prevent any GPU-related resource acquisition from occurring (though rendering speed will be predictably slower).
 - The sample-count used by the GPU for multiscale antialiasing can now be configured through the optional [`msaa`][msaa] export argument. If omitted, defaults to 4x MSAA.
-- Added support for non-default imports (e.g., `import {Image} from "skia-canvs"`) when used as an ES Module.
+- Added support for non-default imports (e.g., `import {Image} from "skia-canvas"`) when used as an ES Module.
 - The [getImageData()][mdn_getImageData] method now makes use of the GPU (if enabled) and caches data between calls, greatly improving performance for sequential queries
 
 [resizable]: /docs/api/window.md#resizable
@@ -383,7 +396,9 @@
 
 **Initial public release** 🎉
 
-[unreleased]: https://github.com/samizdatco/skia-canvas/compare/v1.0.2...HEAD
+[unreleased]: https://github.com/samizdatco/skia-canvas/compare/v2.0.1...HEAD
+[v2.0.1]: https://github.com/samizdatco/skia-canvas/compare/v2.0.0...v2.0.1
+[v2.0.0]: https://github.com/samizdatco/skia-canvas/compare/v1.0.2...v2.0.0
 [v1.0.2]: https://github.com/samizdatco/skia-canvas/compare/v1.0.1...v1.0.2
 [v1.0.1]: https://github.com/samizdatco/skia-canvas/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/samizdatco/skia-canvas/compare/v0.9.30...v1.0.0

@@ -16,14 +16,7 @@
   <a href="https://github.com/samizdatco/skia-canvas/discussions">Discussion Forum</a>
 </div>
 
-<div align="center">
-
-### [2.0 Beta now available for testing](https://github.com/samizdatco/skia-canvas/discussions/189)
-
-</div>
-
 ---
-
 
 Skia Canvas is a browser-less implementation of the HTML Canvas drawing API for Node.js. It is based on Google’s [Skia](https://skia.org) graphics engine and, accordingly, produces very similar results to Chrome’s `<canvas>` element. The library is well suited for use on desktop machines where you can render hardware-accelerated graphics to a window and on the server where it can output a variety of image formats.
 
@@ -212,7 +205,7 @@ This project is deeply indebted to the work of the [Rust Skia project](https://g
 ### Notable contributors
 
 - [@mpaparno](https://github.com/mpaparno) contributed support for SVG rendering, raw image-buffer handling, WEBP import/export and numerous bugfixes
-- [@Salmondx](https://github.com/Salmondx) & [@ggolda](https://github.com/ggolda) developed the initial Raw image loading & rendering routines
+- [@Salmondx](https://github.com/Salmondx) developed the initial Raw image loading & rendering routines
 - [@lucasmerlin](https://github.com/lucasmerlin) helped get GPU rendering working on Vulkan
 - [@cprecioso](https://github.com/cprecioso) & [@saantonandre](https://github.com/saantonandre) corrected and expanded upon the TypeScript type definitions
 - [@meihuanyu](https://github.com/meihuanyu) contributed filter & path rendering fixes
