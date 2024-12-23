@@ -5,7 +5,7 @@ use neon::prelude::*;
 use skia_safe::{Matrix, PaintStyle, Point, RRect, Rect, Size, ImageInfo, AlphaType};
 use skia_safe::path::{AddPathMode::{Append,Extend}, Direction::{CCW, CW}, Path};
 use skia_safe::textlayout::{TextDirection};
-use skia_safe::PaintStyle::{Fill, Stroke};
+use skia_safe::PaintStyle::{Fill, Stroke, StrokeAndFill};
 
 use super::{Context2D, BoxedContext2D, Dye};
 use crate::canvas::BoxedCanvas;
@@ -890,6 +890,10 @@ pub fn fillText(cx: FunctionContext) -> JsResult<JsUndefined> {
 
 pub fn strokeText(cx: FunctionContext) -> JsResult<JsUndefined> {
   _draw_text(cx, Stroke)
+}
+
+pub fn strokeAndFillText(cx: FunctionContext) -> JsResult<JsUndefined> {
+  _draw_text(cx, StrokeAndFill)
 }
 
 fn _draw_text(mut cx: FunctionContext, style:PaintStyle) -> JsResult<JsUndefined> {

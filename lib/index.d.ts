@@ -281,6 +281,8 @@ export interface CanvasRenderingContext2D extends CanvasCompositing, CanvasDrawI
   getImageData(x: number, y: number, width: number, height: number, settings?: ImageDataSettings): ImageData;
   putImageData(imagedata: ImageData, dx: number, dy: number): void;
   putImageData(imagedata: ImageData, dx: number, dy: number, dirtyX: number, dirtyY: number, dirtyWidth: number, dirtyHeight: number): void;
+
+  strokeAndFillText(text: string, x: number, y: number, maxWidth?: number): void;
 }
 
 //
