@@ -309,6 +309,21 @@ export interface ExportOptions extends RenderOptions {
 
   /** Color type to use when exporting in "raw" format */
   colorType?: ColorType
+
+  /** PDF document title */
+  pdfTitle?: string
+
+  /** PDF document author */
+  pdfAuthor?: string
+
+  /** PDF document subject */
+  pdfSubject?: string
+
+  /** PDF document keywords (comma-separated) */
+  pdfKeywords?: string
+
+  /** PDF creator application name */
+  pdfCreator?: string
 }
 
 export interface SaveOptions extends ExportOptions {

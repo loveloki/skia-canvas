@@ -668,10 +668,18 @@ pub fn export_options_arg(cx: &mut FunctionContext, idx: usize) -> NeonResult<Ex
   let text_gamma = float_for_key(cx, &opts, "textGamma")?;
   let outline = bool_for_key(cx, &opts, "outline")?;
 
+  // PDF metadata fields
+  let pdf_title = opt_string_for_key(cx, &opts, "pdfTitle");
+  let pdf_author = opt_string_for_key(cx, &opts, "pdfAuthor");
+  let pdf_subject = opt_string_for_key(cx, &opts, "pdfSubject");
+  let pdf_keywords = opt_string_for_key(cx, &opts, "pdfKeywords");
+  let pdf_creator = opt_string_for_key(cx, &opts, "pdfCreator");
+
   let color_space = ColorSpace::new_srgb();
 
   Ok(ExportOptions{
-    format, quality, density, outline, matte, msaa, color_type, color_space, jpeg_downsample, text_contrast, text_gamma
+    format, quality, density, outline, matte, msaa, color_type, color_space, jpeg_downsample, text_contrast, text_gamma,
+    pdf_title, pdf_author, pdf_subject, pdf_keywords, pdf_creator
   })
 }
 

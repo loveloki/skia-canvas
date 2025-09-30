@@ -324,7 +324,7 @@ impl Page{
     match format.as_str(){
       "pdf" => {
         let mut pdf_bytes = Vec::new();
-        let mut document = pdf_document(&mut pdf_bytes, quality, density).begin_page(size, None);
+        let mut document = pdf_document(&mut pdf_bytes, &options).begin_page(size, None);
         let canvas = document.canvas();
         let picture = self.get_picture(matte).ok_or("Could not generate an image")?;
         canvas.draw_picture(&picture, None, None);
@@ -515,11 +515,11 @@ impl PageSequence{
   }
 
   pub fn as_pdf(&self, options:ExportOptions) -> Result<Vec<u8>, String>{
-    let ExportOptions{ quality, density, matte, .. } = options;
+    let ExportOptions{ matte, .. } = options;
     let mut pdf_bytes = Vec::new();
     self.pages
       .iter()
-      .try_fold(pdf_document(&mut pdf_bytes, quality, density), |doc, page| page.append_to(doc, matte))
+      .try_fold(pdf_document(&mut pdf_bytes, &options), |doc, page| page.append_to(doc, matte))
       .map(|doc| doc.close())?;
     Ok(pdf_bytes)
   }
@@ -664,13 +664,20 @@ pub fn pages_arg(cx: &mut FunctionContext, idx:usize, opts:&ExportOptions, canva
   Ok(PageSequence::from(pages, engine))
 }
 
-fn pdf_document(buffer:&mut impl std::io::Write, quality:f32, density:f32) -> Document<'_>{
-  pdf::new_document(buffer, Some(&pdf::Metadata {
+fn pdf_document<'a>(buffer:&'a mut impl std::io::Write, options: &ExportOptions) -> Document<'a>{
+  let metadata = pdf::Metadata {
     producer: "Skia Canvas <https://skia-canvas.org>".to_string(),
-    encoding_quality: Some((quality*100.0) as i32),
-    raster_dpi: Some(density * 72.0),
+    encoding_quality: Some((options.quality * 100.0) as i32),
+    raster_dpi: Some(options.density * 72.0),
+    title: options.pdf_title.clone().unwrap_or_default(),
+    author: options.pdf_author.clone().unwrap_or_default(),
+    subject: options.pdf_subject.clone().unwrap_or_default(),
+    keywords: options.pdf_keywords.clone().unwrap_or_default(),
+    creator: options.pdf_creator.clone().unwrap_or_default(),
     ..Default::default()
-  }))
+  };
+  
+  pdf::new_document(buffer, Some(&metadata))
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -686,6 +693,12 @@ pub struct ExportOptions{
   pub jpeg_downsample: bool,
   pub text_contrast: f32,
   pub text_gamma: f32,
+  // PDF metadata fields
+  pub pdf_title: Option<String>,
+  pub pdf_author: Option<String>,
+  pub pdf_subject: Option<String>,
+  pub pdf_keywords: Option<String>,
+  pub pdf_creator: Option<String>,
 }
 
 impl Default for ExportOptions{
@@ -694,6 +707,12 @@ impl Default for ExportOptions{
       format:"raw".to_string(), quality:0.92, density:1.0, matte:None,
       jpeg_downsample:false, text_contrast:0.0, text_gamma:1.4, msaa:None,
       color_type:ColorType::RGBA8888, color_space:ColorSpace::new_srgb(), outline:true,
+      // PDF metadata defaults
+      pdf_title: None,
+      pdf_author: None,
+      pdf_subject: None,
+      pdf_keywords: None,
+      pdf_creator: None,
     }
   }
 }
